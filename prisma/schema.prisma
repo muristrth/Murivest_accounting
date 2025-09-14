@@ -1,0 +1,355 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Authentication & Authorization
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  password  String
+  role      String   @default("USER")
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  clients             Client[]
+  properties          Property[]
+  accounts            Account[]
+  transactions        Transaction[]
+  journalEntries      JournalEntry[]
+  invoices            Invoice[]
+  payments            Payment[]
+  bills               Bill[]
+  expenses            Expense[]
+  bankReconciliations BankReconciliation[]
+  documents           Document[]
+  emailLogs           EmailLog[]
+  gifts               Gift[]
+
+  @@map("users")
+}
+
+model Role {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  permissions RolePermission[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  resource    String
+  action      String
+  createdAt   DateTime @default(now())
+
+  // Relations
+  roles RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  id           String @id @default(cuid())
+  roleId       String
+  permissionId String
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+// CRM Module
+model Client {
+  id          String   @id @default(cuid())
+  firstName   String
+  lastName    String
+  email       String   @unique
+  phone       String?
+  company     String?
+  address     String?
+  city        String?
+  country     String?
+  dateOfBirth DateTime?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  properties  Property[]
+  invoices    Invoice[]
+  payments    Payment[]
+  gifts       Gift[]
+
+  @@map("clients")
+}
+
+// Properties Module
+model Property {
+  id            String   @id @default(cuid())
+  name          String
+  address       String
+  city          String
+  country       String
+  propertyType  String
+  status        String   @default("AVAILABLE")
+  purchasePrice Decimal?
+  currentValue  Decimal?
+  monthlyRent   Decimal?
+  description   String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  clientId  String?
+  client    Client?  @relation(fields: [clientId], references: [id])
+  documents Document[]
+
+  @@map("properties")
+}
+
+// Accounting Module - Chart of Accounts
+model Account {
+  id            String   @id @default(cuid())
+  code          String   @unique
+  name          String
+  type          String
+  category      String
+  description   String?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  userId       String
+  user         User        @relation(fields: [userId], references: [id])
+  transactions Transaction[]
+
+  @@map("accounts")
+}
+
+// General Ledger Transactions
+model Transaction {
+  id          String   @id @default(cuid())
+  date        DateTime
+  reference   String
+  description String
+  debit       Decimal  @default(0)
+  credit      Decimal  @default(0)
+  createdAt   DateTime @default(now())
+
+  // Relations
+  userId         String
+  user           User          @relation(fields: [userId], references: [id])
+  accountId      String
+  account        Account       @relation(fields: [accountId], references: [id])
+  journalEntryId String?
+  journalEntry   JournalEntry? @relation("JournalEntryTransactions", fields: [journalEntryId], references: [id])
+
+  @@map("transactions")
+}
+
+// Journal Entries
+model JournalEntry {
+  id          String   @id @default(cuid())
+  date        DateTime
+  reference   String
+  description String
+  status      String   @default("DRAFT")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  userId       String
+  user         User         @relation(fields: [userId], references: [id])
+  transactions Transaction[] @relation("JournalEntryTransactions")
+
+  @@map("journal_entries")
+}
+
+// Receivables
+model Invoice {
+  id          String   @id @default(cuid())
+  number      String   @unique
+  date        DateTime
+  dueDate     DateTime
+  amount      Decimal
+  taxAmount   Decimal  @default(0)
+  totalAmount Decimal
+  status      String   @default("UNPAID")
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  userId   String
+  user     User     @relation(fields: [userId], references: [id])
+  clientId String
+  client   Client   @relation(fields: [clientId], references: [id])
+  payments Payment[]
+
+  @@map("invoices")
+}
+
+model Payment {
+  id            String   @id @default(cuid())
+  date          DateTime
+  amount        Decimal
+  method        String
+  reference     String?
+  description   String?
+  createdAt     DateTime @default(now())
+
+  // Relations
+  userId    String
+  user      User    @relation(fields: [userId], references: [id])
+  clientId  String
+  client    Client  @relation(fields: [clientId], references: [id])
+  invoiceId String?
+  invoice   Invoice? @relation(fields: [invoiceId], references: [id])
+
+  @@map("payments")
+}
+
+// Accounts Payable
+model Bill {
+  id          String   @id @default(cuid())
+  number      String   @unique
+  date        DateTime
+  dueDate     DateTime
+  amount      Decimal
+  taxAmount   Decimal  @default(0)
+  totalAmount Decimal
+  status      String   @default("UNPAID")
+  description String?
+  vendorName  String
+  vendorEmail String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@map("bills")
+}
+
+// Expenses
+model Expense {
+  id          String   @id @default(cuid())
+  date        DateTime
+  amount      Decimal
+  category    String
+  description String
+  receipt     String?
+  status      String   @default("PENDING")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@map("expenses")
+}
+
+// Bank Reconciliation
+model BankReconciliation {
+  id              String   @id @default(cuid())
+  statementDate   DateTime
+  bankName        String
+  accountNumber   String
+  statementBalance Decimal
+  bookBalance     Decimal
+  reconciled      Boolean  @default(false)
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@map("bank_reconciliations")
+}
+
+// Documents
+model Document {
+  id          String   @id @default(cuid())
+  name        String
+  type        String
+  size        Int
+  path        String
+  description String?
+  createdAt   DateTime @default(now())
+
+  // Relations
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  propertyId String?
+  property   Property? @relation(fields: [propertyId], references: [id])
+
+  @@map("documents")
+}
+
+// Email System
+model EmailLog {
+  id          String   @id @default(cuid())
+  to          String
+  subject     String
+  body        String
+  type        String
+  status      String   @default("SENT")
+  sentAt      DateTime @default(now())
+  error       String?
+
+  // Relations
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@map("email_logs")
+}
+
+// Customer Retention - Gifts
+model Gift {
+  id          String   @id @default(cuid())
+  type        String
+  description String
+  value       Decimal
+  sentDate    DateTime?
+  status      String   @default("PENDING")
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  userId   String
+  user     User    @relation(fields: [userId], references: [id])
+  clientId String
+  client   Client  @relation(fields: [clientId], references: [id])
+
+  @@map("gifts")
+}
