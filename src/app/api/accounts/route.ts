@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
 
     const userId = session.user.id
 
-    const accounts = await prisma.account.findMany({
+    const accounts = await (prisma as any).account.findMany({
       where: { userId },
       orderBy: { code: 'asc' }
     })
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     const userId = session.user.id
     const body = await request.json()
 
-    const account = await prisma.account.create({
+    const account = await (prisma as any).account.create({
       data: {
         code: body.code,
         name: body.name,
