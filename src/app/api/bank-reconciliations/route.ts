@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
 
     const userId = session.user.id
 
-    const reconciliations = await prisma.bankReconciliation.findMany({
+    const reconciliations = await (prisma as any).bankReconciliation.findMany({
       where: { userId },
       orderBy: { createdAt: "desc" }
     })
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     const userId = session.user.id
     const body = await request.json()
 
-    const reconciliation = await prisma.bankReconciliation.create({
+    const reconciliation = await (prisma as any).bankReconciliation.create({
       data: {
         statementDate: new Date(body.statementDate),
         bankName: body.bankName,

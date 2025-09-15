@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
     const userId = session.user.id
 
     // Calculate total assets
-    const totalAssets = await prisma.transaction.aggregate({
+    const totalAssets = await (prisma as any).transaction.aggregate({
       where: {
         userId,
         account: { type: "Asset" }
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     })
 
     // Calculate total liabilities
-    const totalLiabilities = await prisma.transaction.aggregate({
+    const totalLiabilities = await (prisma as any).transaction.aggregate({
       where: {
         userId,
         account: { type: "Liability" }
@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
     })
 
     // Calculate owner's equity
-    const totalEquity = await prisma.transaction.aggregate({
+    const totalEquity = await (prisma as any).transaction.aggregate({
       where: {
         userId,
         account: { type: "Equity" }
@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
     })
 
     // Calculate net income (revenue - expenses)
-    const totalRevenue = await prisma.transaction.aggregate({
+    const totalRevenue = await (prisma as any).transaction.aggregate({
       where: {
         userId,
         account: { type: "Revenue" }
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
       _sum: { credit: true }
     })
 
-    const totalExpenses = await prisma.transaction.aggregate({
+    const totalExpenses = await (prisma as any).transaction.aggregate({
       where: {
         userId,
         account: { type: "Expense" }
