@@ -3,7 +3,7 @@
 
 generator client {
   provider = "prisma-client-js"
-  output = "./generated/prisma-client"
+  output   = "./generated/prisma-client"
 }
 
 datasource db {
@@ -81,27 +81,27 @@ model RolePermission {
 
 // CRM Module
 model Client {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   firstName   String
   lastName    String
-  email       String   @unique
+  email       String    @unique
   phone       String?
   company     String?
   address     String?
   city        String?
   country     String?
   dateOfBirth DateTime?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   // Relations
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
-  properties  Property[]
-  invoices    Invoice[]
-  payments    Payment[]
-  gifts       Gift[]
+  userId     String
+  user       User       @relation(fields: [userId], references: [id])
+  properties Property[]
+  invoices   Invoice[]
+  payments   Payment[]
+  gifts      Gift[]
 
   @@map("clients")
 }
@@ -124,9 +124,9 @@ model Property {
 
   // Relations
   userId    String
-  user      User     @relation(fields: [userId], references: [id])
+  user      User       @relation(fields: [userId], references: [id])
   clientId  String?
-  client    Client?  @relation(fields: [clientId], references: [id])
+  client    Client?    @relation(fields: [clientId], references: [id])
   documents Document[]
 
   @@map("properties")
@@ -134,19 +134,19 @@ model Property {
 
 // Accounting Module - Chart of Accounts
 model Account {
-  id            String   @id @default(cuid())
-  code          String   @unique
-  name          String
-  type          String
-  category      String
-  description   String?
-  isActive      Boolean  @default(true)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id          String   @id @default(cuid())
+  code        String   @unique
+  name        String
+  type        String
+  category    String
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   // Relations
   userId       String
-  user         User        @relation(fields: [userId], references: [id])
+  user         User          @relation(fields: [userId], references: [id])
   transactions Transaction[]
 
   @@map("accounts")
@@ -185,7 +185,7 @@ model JournalEntry {
 
   // Relations
   userId       String
-  user         User         @relation(fields: [userId], references: [id])
+  user         User          @relation(fields: [userId], references: [id])
   transactions Transaction[] @relation("JournalEntryTransactions")
 
   @@map("journal_entries")
@@ -207,28 +207,28 @@ model Invoice {
 
   // Relations
   userId   String
-  user     User     @relation(fields: [userId], references: [id])
+  user     User      @relation(fields: [userId], references: [id])
   clientId String
-  client   Client   @relation(fields: [clientId], references: [id])
+  client   Client    @relation(fields: [clientId], references: [id])
   payments Payment[]
 
   @@map("invoices")
 }
 
 model Payment {
-  id            String   @id @default(cuid())
-  date          DateTime
-  amount        Decimal
-  method        String
-  reference     String?
-  description   String?
-  createdAt     DateTime @default(now())
+  id          String   @id @default(cuid())
+  date        DateTime
+  amount      Decimal
+  method      String
+  reference   String?
+  description String?
+  createdAt   DateTime @default(now())
 
   // Relations
   userId    String
-  user      User    @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
   clientId  String
-  client    Client  @relation(fields: [clientId], references: [id])
+  client    Client   @relation(fields: [clientId], references: [id])
   invoiceId String?
   invoice   Invoice? @relation(fields: [invoiceId], references: [id])
 
@@ -279,16 +279,16 @@ model Expense {
 
 // Bank Reconciliation
 model BankReconciliation {
-  id              String   @id @default(cuid())
-  statementDate   DateTime
-  bankName        String
-  accountNumber   String
+  id               String   @id @default(cuid())
+  statementDate    DateTime
+  bankName         String
+  accountNumber    String
   statementBalance Decimal
-  bookBalance     Decimal
-  reconciled      Boolean  @default(false)
-  notes           String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  bookBalance      Decimal
+  reconciled       Boolean  @default(false)
+  notes            String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   // Relations
   userId String
@@ -309,7 +309,7 @@ model Document {
 
   // Relations
   userId     String
-  user       User     @relation(fields: [userId], references: [id])
+  user       User      @relation(fields: [userId], references: [id])
   propertyId String?
   property   Property? @relation(fields: [propertyId], references: [id])
 
@@ -318,14 +318,14 @@ model Document {
 
 // Email System
 model EmailLog {
-  id          String   @id @default(cuid())
-  to          String
-  subject     String
-  body        String
-  type        String
-  status      String   @default("SENT")
-  sentAt      DateTime @default(now())
-  error       String?
+  id      String   @id @default(cuid())
+  to      String
+  subject String
+  body    String
+  type    String
+  status  String   @default("SENT")
+  sentAt  DateTime @default(now())
+  error   String?
 
   // Relations
   userId String
@@ -336,21 +336,21 @@ model EmailLog {
 
 // Customer Retention - Gifts
 model Gift {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   type        String
   description String
   value       Decimal
   sentDate    DateTime?
-  status      String   @default("PENDING")
+  status      String    @default("PENDING")
   notes       String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   // Relations
   userId   String
-  user     User    @relation(fields: [userId], references: [id])
+  user     User   @relation(fields: [userId], references: [id])
   clientId String
-  client   Client  @relation(fields: [clientId], references: [id])
+  client   Client @relation(fields: [clientId], references: [id])
 
   @@map("gifts")
 }
